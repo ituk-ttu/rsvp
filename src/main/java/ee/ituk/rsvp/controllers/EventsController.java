@@ -9,9 +9,12 @@ import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/events")
@@ -37,6 +40,7 @@ public class EventsController {
      * @return JSON String
      */
     @GetMapping(value = {"", "/", "/all"})
+    @ResponseStatus(HttpStatus.OK)
     public String showAll() {
         ObjectNode root = factory.objectNode();
         root.put(Constants.TYPE, "events");
@@ -123,30 +127,23 @@ public class EventsController {
     /**
      * Delete event
      *
-     * @param eventModel Must contain 'long eventId'
+     * @param id: Id of event.
      * @return JSON String
      */
-    @PostMapping(value = "/delete")
-    public String eventDelete(@ModelAttribute EventModel eventModel) {
-        ObjectNode root = factory.objectNode();
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        Optional<EventModel> oEventModel = eventRepo.findById(id);
 
-        if (eventRepo.existsById(eventModel.getId())) {
+        if (oEventModel.isPresent()) {
             try {
-                eventRepo.delete(eventModel);
-                root.put(Constants.STATUS, Constants.STATUS_OK);
-                root.put(Constants.INFO, "Deletion successful");
-                root.put(Constants.ID, eventModel.getId());
+                eventRepo.delete(oEventModel.get());
+                return ResponseEntity.status(HttpStatus.OK).body(null);
             } catch (Exception e) {
-                root = thinkingClass.getErrorNode(e);
-                root.put(Constants.ID, eventModel.getId());
                 e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
-            return root.toString();
         } else {
-            root.put(Constants.STATUS, Constants.STATUS_OK);
-            root.put(Constants.INFO, "Event not found!");
-            root.put(Constants.ID, eventModel.getId());
-            return root.toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Event not found");
         }
     }
 }
