@@ -40,10 +40,7 @@ public class EventsController {
      * @return JSON String
      */
     @GetMapping(value = {"", "/", "/all"})
-    @ResponseStatus(HttpStatus.OK)
-    public String showAll() {
-        ObjectNode root = factory.objectNode();
-        root.put(Constants.TYPE, "events");
+    public ResponseEntity<String> all() {
 
         try {
             ArrayNode events = factory.arrayNode();
@@ -59,12 +56,11 @@ public class EventsController {
                 events.add(event);
             }
 
-            root.putPOJO(Constants.EVENTS, events);
+            return ResponseEntity.status(HttpStatus.OK).body(events.toString());
         } catch (Exception e) {
-            root = thinkingClass.getErrorNode(e);
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return root.toString();
     }
 
     /**
@@ -97,7 +93,7 @@ public class EventsController {
      *              String eventTime
      *              String eventPlace
      *              String info
-     *              long inviteExpiri
+     *              long inviteExpiry
      * @return JSON String
      */
     @PostMapping(value="/edit")
