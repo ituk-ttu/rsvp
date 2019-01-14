@@ -96,7 +96,7 @@ public class EventsController {
      *              long inviteExpiry
      * @return JSON String
      */
-    @PostMapping(value="/edit")
+    @PutMapping(value="/edit")
     public String eventEdit(@RequestParam("eventId") long eventId, @ModelAttribute EventModel eventModel) {
         ObjectNode root = factory.objectNode();
 
