@@ -12,6 +12,16 @@
 
 |   |   |
 |---|---|
+|**Description**| Create event
+|**URL**        | `/events/`, `/events/create`
+|**Method**     | `POST`
+|**URL Params** | None
+|**Data Params** | None
+|**Success Response** | Code: 201, Content: None
+|**Error Response** | Code: 400, Content: JSON list of errors in english<br> Code: 500, Content: None
+
+|   |   |
+|---|---|
 |**Description**| Delete event from database by id
 |**URL**        | `/events/{id}`, `/events/delete/{id}`
 |**Method**     | `DELETE`
