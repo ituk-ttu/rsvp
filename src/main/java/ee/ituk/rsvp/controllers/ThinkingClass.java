@@ -2,7 +2,7 @@ package ee.ituk.rsvp.controllers;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ee.ituk.rsvp.Constants;
+import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
@@ -25,7 +25,7 @@ public class ThinkingClass {
 
     public ObjectNode getInviteNode(InviteModel inviteModel) {
         ObjectNode root = factory.objectNode();
-        populateInviteNode(inviteModel, root);
+        this.populateInviteNode(inviteModel, root);
         return root;
     }
 
@@ -39,12 +39,13 @@ public class ThinkingClass {
 
     public ObjectNode getEventNode(EventModel eventModel) {
         ObjectNode root = factory.objectNode();
-        populateEventNode(eventModel, root);
+        this.populateEventNode(eventModel, root);
         return root;
     }
 
     public void populateEventNode(EventModel eventModel, ObjectNode root) {
         root.put(Constants.ID, eventModel.getId());
+        root.put(Constants.E_ISPUBLIC, eventModel.isPublic());
         root.put(Constants.E_CREATORID, eventModel.getCreatorId());
         root.put(Constants.E_NAME, eventModel.getEventName());
         root.put(Constants.E_TIME, eventModel.getEventTime());
@@ -55,7 +56,7 @@ public class ThinkingClass {
 
     public ObjectNode getErrorNode(Exception e) {
         ObjectNode root = factory.objectNode();
-        populateErrorNode(e, root);
+        this.populateErrorNode(e, root);
         return root;
     }
 

@@ -1,18 +1,23 @@
 package ee.ituk.rsvp.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ee.ituk.rsvp.Constants;
+import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
+import ee.ituk.rsvp.validation.EventRequestValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.text.SimpleDateFormat;
 import java.util.Optional;
 
@@ -22,11 +27,13 @@ public class EventsController {
     private JsonNodeFactory factory;
     private ThinkingClass thinkingClass;
     private SimpleDateFormat dateFormat;
+    private ObjectMapper objectMapper;
 
     public EventsController() {
         factory = new JsonNodeFactory(false);
         thinkingClass = new ThinkingClass();
         dateFormat = new SimpleDateFormat("dd.MM.YYYY HH:mm");
+
     }
 
     @Autowired
@@ -46,6 +53,7 @@ public class EventsController {
             ArrayNode events = factory.arrayNode();
             for (EventModel eventModel : eventRepo.findAll()) {
                 ObjectNode event = thinkingClass.getEventNode(eventModel);
+
                 ArrayNode invites = factory.arrayNode();
 
                 for (InviteModel inviteModel : inviteRepo.findByEventId(eventModel.getId())) {
@@ -69,19 +77,28 @@ public class EventsController {
      * @param eventModel
      * @return JSON string
      */
-    @PostMapping("/create")
-    public String eventCreate(@ModelAttribute EventModel eventModel) {
-        ObjectNode root = factory.objectNode();
+    @PostMapping(value = {"/", "/create"})
+    public ResponseEntity<String> eventCreate(@Valid @RequestBody EventModel eventModel, Errors errors) {
         try {
+            EventRequestValidator validator = new EventRequestValidator();
+            validator.validate(eventModel, errors);
+
+            if (errors.hasErrors()) {
+                ObjectNode root = factory.objectNode();
+                ArrayNode errorArray = factory.arrayNode();
+                for (ObjectError objectError : errors.getAllErrors()) {
+                    errorArray.add(objectError.getDefaultMessage());
+                }
+                root.putPOJO("errors", errorArray);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(root.toString());
+            }
+
             eventRepo.save(eventModel);
-            root.put(Constants.STATUS, Constants.STATUS_OK);
-            thinkingClass.populateEventNode(eventModel, root);
+            return ResponseEntity.status(HttpStatus.CREATED).body(null);
         } catch (Exception e) {
-            root = thinkingClass.getErrorNode(e);
-            root.put(Constants.ID, eventModel.getId());
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return root.toString();
     }
 
     /**
@@ -126,7 +143,7 @@ public class EventsController {
      * @param id: Id of event.
      * @return JSON String
      */
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = {"/{id}", "/delete/{id}"})
     public ResponseEntity<String> delete(@PathVariable Long id) {
         Optional<EventModel> oEventModel = eventRepo.findById(id);
 
@@ -139,7 +156,8 @@ public class EventsController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Event not found");
+            String msg = factory.objectNode().put("error", "Event not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
     }
 }

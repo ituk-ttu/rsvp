@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import java.io.Serializable;
 
 @Entity
@@ -23,6 +25,7 @@ public class EventModel implements Serializable {
     @Getter @Setter private String eventName;
 
     @Column(nullable = false)
+    @PositiveOrZero
     @Getter @Setter private long eventTime;
 
     @Column(nullable = false)
@@ -40,8 +43,8 @@ public class EventModel implements Serializable {
         this.creatorId = creatorId;
         this.isPublic = isPublic;
         this.eventName = eventName;
-        this.eventPlace = eventPlace;
         this.eventTime = eventTime;
+        this.eventPlace = eventPlace;
         this.info = info;
         this.inviteExpire = inviteExpire;
     }

@@ -1,6 +1,22 @@
-Show all events
+## Event endpoints
 
-```
-GET /
-GET /all
-```
+|   |   |
+|---|---|
+|**Description**| Get all events in database 
+|**URL**        | `/events`, `/events/`, `/events/all`
+|**Method**     | `GET`
+|**URL Params** | None
+|**Data Params** | None 
+|**Success Response** | Code: 200 Content: All found events
+|**Error Response** | Code: 500, Content: None |
+
+|   |   |
+|---|---|
+|**Description**| Delete event from database by id
+|**URL**        | `/events/{id}`, `/events/delete/{id}`
+|**Method**     | `DELETE`
+|**URL Params** | Id of event
+|**Data Params** | None
+|**Success Response** | Code: 200, Content: None
+|**Error Response** | Code: 404, Content: `{error: "Event not found"}` <br> Code: 500, Content: None
+
