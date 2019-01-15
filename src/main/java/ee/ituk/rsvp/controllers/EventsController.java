@@ -1,24 +1,21 @@
 package ee.ituk.rsvp.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
+import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.validation.EventRequestValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 @RestController
@@ -26,13 +23,10 @@ import java.util.Optional;
 public class EventsController {
     private JsonNodeFactory factory;
     private ThinkingClass thinkingClass;
-    private SimpleDateFormat dateFormat;
-    private ObjectMapper objectMapper;
 
     public EventsController() {
         factory = new JsonNodeFactory(false);
         thinkingClass = new ThinkingClass();
-        dateFormat = new SimpleDateFormat("dd.MM.YYYY HH:mm");
 
     }
 
@@ -101,7 +95,7 @@ public class EventsController {
      * @param eventModel Must contain all fields of EventModel:
      *              String creatorId
      *              String eventName
-     *              String eventTime
+     *              Long eventTime
      *              String eventPlace
      *              String info
      *              long inviteExpiry
