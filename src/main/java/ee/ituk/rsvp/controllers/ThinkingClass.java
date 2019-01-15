@@ -1,5 +1,6 @@
 package ee.ituk.rsvp.controllers;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ee.ituk.rsvp.util.Constants;
@@ -9,6 +10,8 @@ import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 
 @Service
 public class ThinkingClass {
@@ -63,5 +66,15 @@ public class ThinkingClass {
     public void populateErrorNode(Exception e, ObjectNode root) {
         root.put(Constants.STATUS, Constants.STATUS_NOTOK);
         root.put(Constants.ERROR, e.getClass().getSimpleName());
+    }
+
+    public String createValidationErrorNode(Errors errors) {
+        ObjectNode root = factory.objectNode();
+        ArrayNode errorArray = factory.arrayNode();
+        for (ObjectError objectError : errors.getAllErrors()) {
+            errorArray.add(objectError.getDefaultMessage());
+        }
+        root.putPOJO("errors", errorArray);
+        return root.toString();
     }
 }

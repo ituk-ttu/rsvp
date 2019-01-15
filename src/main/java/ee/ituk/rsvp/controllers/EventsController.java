@@ -37,6 +37,8 @@ public class EventsController {
     }
 
     @Autowired
+    EventRequestValidator validator;
+    @Autowired
     EventRepo eventRepo;
     @Autowired
     InviteRepo inviteRepo;
@@ -78,20 +80,12 @@ public class EventsController {
      * @return JSON string
      */
     @PostMapping(value = {"/", "/create"})
-    public ResponseEntity<String> eventCreate(@Valid @RequestBody EventModel eventModel, Errors errors) {
+    public ResponseEntity<String> create(@Valid @RequestBody EventModel eventModel, Errors errors) {
         try {
-            EventRequestValidator validator = new EventRequestValidator();
             validator.validate(eventModel, errors);
 
-            if (errors.hasErrors()) {
-                ObjectNode root = factory.objectNode();
-                ArrayNode errorArray = factory.arrayNode();
-                for (ObjectError objectError : errors.getAllErrors()) {
-                    errorArray.add(objectError.getDefaultMessage());
-                }
-                root.putPOJO("errors", errorArray);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(root.toString());
-            }
+            if (errors.hasErrors())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkingClass.createValidationErrorNode(errors));
 
             eventRepo.save(eventModel);
             return ResponseEntity.status(HttpStatus.CREATED).body(null);
@@ -113,28 +107,31 @@ public class EventsController {
      *              long inviteExpiry
      * @return JSON String
      */
-    @PutMapping(value="/edit")
-    public String eventEdit(@RequestParam("eventId") long eventId, @ModelAttribute EventModel eventModel) {
-        ObjectNode root = factory.objectNode();
+    @PutMapping(value = {"/{id}", "/edit/{id}"})
+    public ResponseEntity<String> edit(@PathVariable Long id, @Valid @RequestBody EventModel eventModel, Errors errors) {
+        if (id == null) {
+            String msg = factory.objectNode().put("error", "Event ID is null").toString();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+        }
 
-        if (eventRepo.existsById(eventId)) {
+        validator.validate(eventModel, errors);
+        if (errors.hasErrors())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkingClass.createValidationErrorNode(errors));
+
+        if (eventRepo.existsById(id)) {
             try {
-                eventModel.hiddenIdSetter(eventId);
+                eventModel.hiddenIdSetter(id);
                 eventRepo.save(eventModel);
 
-                root.put(Constants.STATUS, Constants.STATUS_OK);
-                thinkingClass.populateEventNode(eventModel, root);
+                return ResponseEntity.status(HttpStatus.OK).body(null);
             } catch (Exception e) {
-                root = thinkingClass.getErrorNode(e);
-                root.put(Constants.ID, eventModel.getId());
                 e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         } else {
-            root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-            root.put(Constants.INFO, "Event not found.");
-            root.put(Constants.ID, eventId);
+            String msg = factory.objectNode().put("error", "Event not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
-        return root.toString();
     }
 
     /**
@@ -145,6 +142,11 @@ public class EventsController {
      */
     @DeleteMapping(value = {"/{id}", "/delete/{id}"})
     public ResponseEntity<String> delete(@PathVariable Long id) {
+        if (id == null) {
+            String msg = factory.objectNode().put("error", "Event ID is null").toString();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+        }
+
         Optional<EventModel> oEventModel = eventRepo.findById(id);
 
         if (oEventModel.isPresent()) {
