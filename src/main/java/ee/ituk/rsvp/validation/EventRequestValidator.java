@@ -52,11 +52,9 @@ public class EventRequestValidator implements Validator {
     }
 
     private boolean isTimeInPast(Long longTime) {
-        LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochMilli(longTime), ZoneId.systemDefault());
+        LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochSecond(longTime), ZoneId.systemDefault());
         LocalDateTime now = LocalDateTime.now();
 
         return time.isBefore(now);
-
-
     }
 }

@@ -59,7 +59,6 @@ public class EventsController {
                 event.putPOJO(Constants.INVITES, invites);
                 events.add(event);
             }
-
             return ResponseEntity.status(HttpStatus.OK).body(events.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,7 +80,7 @@ public class EventsController {
             if (errors.hasErrors())
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkingClass.createValidationErrorNode(errors));
 
-            eventRepo.save(eventModel);
+            EventModel savedModel = eventRepo.save(eventModel);
             return ResponseEntity.status(HttpStatus.CREATED).body(null);
         } catch (Exception e) {
             e.printStackTrace();

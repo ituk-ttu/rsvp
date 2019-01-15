@@ -23,6 +23,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
 
     testImplementation 'junit:junit:4.12'
+    testImplementation 'com.h2database:h2:1.4.197'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.1.2.RELEASE'
+
 }
 
 jar {

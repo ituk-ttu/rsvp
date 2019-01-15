@@ -3,7 +3,7 @@ package ee.ituk.rsvp.controllers;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ee.ituk.rsvp.Constants;
+import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;

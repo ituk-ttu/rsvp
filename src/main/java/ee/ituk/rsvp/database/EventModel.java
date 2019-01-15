@@ -4,16 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import java.io.Serializable;
 
 @Entity
 @Table(name="events")
 public class EventModel implements Serializable {
-    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Getter private long id;
+    @Id @Getter private long id;
 
     @Column(nullable = false)
     @Getter @Setter private String creatorId;
@@ -25,7 +23,6 @@ public class EventModel implements Serializable {
     @Getter @Setter private String eventName;
 
     @Column(nullable = false)
-    @PositiveOrZero
     @Getter @Setter private long eventTime;
 
     @Column(nullable = false)
