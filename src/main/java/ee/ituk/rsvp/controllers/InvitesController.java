@@ -3,195 +3,180 @@ package ee.ituk.rsvp.controllers;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import ee.ituk.rsvp.util.Constants;
+import ee.ituk.rsvp.validation.InviteRequestValidator;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/invites")
 public class InvitesController {
     private JsonNodeFactory factory;
-    private ThinkingClass thinkingClass;
 
     public InvitesController() {
         factory = new JsonNodeFactory(false);
-        thinkingClass = new ThinkingClass();
     }
 
-    @Autowired
-    InviteRepo inviteRepo;
-    @Autowired
-    EventRepo eventRepo;
+    @Resource
+    private InviteRequestValidator validator;
+    @Resource
+    private ThinkerService thinkerService;
+    @Resource
+    private InviteRepo inviteRepo;
+    @Resource
+    private EventRepo eventRepo;
 
     /**
      * Returns all invites in database
      *
      * @return JSON String
      */
-    @GetMapping(value={"", "/", "/all"})
-    public String showAll() {
-        ObjectNode root = factory.objectNode();
-        root.put(Constants.TYPE, "invites");
-
+    @GetMapping(value = {"", "/", "/all"})
+    public ResponseEntity<String> showAll() {
         try {
             ArrayNode invites = factory.arrayNode();
             for (InviteModel inviteModel : inviteRepo.findAll()) {
-                invites.add(thinkingClass.getInviteNode(inviteModel));
+                invites.add(thinkerService.getInviteNode(inviteModel));
             }
 
-            root.put(Constants.STATUS, Constants.STATUS_OK);
-            root.putPOJO(Constants.INVITES, invites);
+            return ResponseEntity.status(HttpStatus.OK).body(invites.toString());
         } catch (Exception e) {
-            root = thinkingClass.getErrorNode(e);
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return root.toString();
     }
 
     /**
-     * Create invite
+     * Create invite. Always sets 'coming' to false.
      *
      * @param inviteModel Must contain 'int eventId', 'String name', 'String info', 'boolean coming'
      * @return JSON String
      */
-    @PostMapping("/create")
-    public String inviteCreate(@ModelAttribute InviteModel inviteModel) {
-        ObjectNode root = factory.objectNode();
-
+    @PostMapping(value = {"/", "/create"})
+    public ResponseEntity<String> create(@Valid @RequestBody InviteModel inviteModel, Errors errors) {
         try {
-            inviteRepo.save(inviteModel);
-            root.put(Constants.STATUS, Constants.STATUS_OK);
-            thinkingClass.populateInviteNode(inviteModel, root);
+            validator.validate(inviteModel, errors);
+
+            if (errors.hasErrors())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+
+            inviteModel.setComing(false);
+            InviteModel savedModel = inviteRepo.save(inviteModel);
+
+            String msg = factory.objectNode().put("inviteId", savedModel.getId()).toString();
+            return ResponseEntity.status(HttpStatus.CREATED).body(msg);
         } catch (Exception e) {
-            thinkingClass.populateErrorNode(e, root);
-            root.put(Constants.ID, inviteModel.getId());
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return root.toString();
     }
 
     /**
      * Update invite by overwriting database entry
      *
-     * @param inviteId InviteId
-     * @param inviteModel Must contain all fields of InviteModel:
-     *               eventId
-     *               name
-     *               info
-     *               answer
+     * @param id Id of invite
+     * @param inviteModel Must contain 'int eventId', 'String name', 'String info', 'boolean coming'
      * @return JSON String
      */
-    @PostMapping(value="/edit")
-    public String inviteEdit(@RequestParam("inviteId") long inviteId, @ModelAttribute InviteModel inviteModel) {
-        ObjectNode root = factory.objectNode();
+    @PutMapping(value = {"/{id}", "/edit/{id}"})
+    public ResponseEntity<String> edit(@PathVariable Long id, @Valid @RequestBody InviteModel inviteModel, Errors errors) {
+        if (id == null) {
+            String msg = factory.objectNode().put("error", "Invite id is null").toString();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+        }
 
-        if (inviteRepo.existsById(inviteId)) {
+        validator.validate(inviteModel, errors);
+        if (errors.hasErrors())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+
+        if (inviteRepo.existsById(id)) {
             try {
-                InviteModel prevInviteModel = inviteRepo.findById(inviteId).get();
-
-                if (prevInviteModel.isComing() != inviteModel.isComing()) {
-                    Optional<EventModel> oEventModel = eventRepo.findById(inviteModel.getEventId());
-                    if (oEventModel.isPresent()) {
-                        EventModel eventModel = oEventModel.get();
-
-                        if (eventModel.getInviteExpire() < System.currentTimeMillis() / 1000) {
-                            root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-                            root.put(Constants.INFO, "Expiry date has passed.");
-                            root.put(Constants.ID, inviteId);
-                            return root.toString();
-                        }
-                    } else {
-                        root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-                        root.put(Constants.INFO, "Could not find event with id: " + inviteModel.getEventId());
-                        root.put(Constants.ID, inviteId);
-                        return root.toString();
-                    }
-                }
-
-                inviteModel.hiddenIdSetter(inviteId);
+                inviteModel.hiddenIdSetter(id);
                 inviteRepo.save(inviteModel);
 
-                root.put(Constants.STATUS, Constants.STATUS_OK);
-                thinkingClass.populateInviteNode(inviteModel, root);
+                return ResponseEntity.status(HttpStatus.OK).body(null);
             } catch (Exception e) {
-                thinkingClass.populateErrorNode(e, root);
                 e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         } else {
-            root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-            root.put(Constants.INFO, "Invite not found");
-            root.put(Constants.ID, inviteId);
+            String msg = factory.objectNode().put("error", "Invite not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
-        return root.toString();
     }
 
     /**
      * Delete invite
      *
-     * @param id Must contain 'long inviteId'
+     * @param id Id of invite
      * @return JSON String
      */
-    @PostMapping(value="/delete")
-    public String inviteDelete(@RequestParam("inviteId") long id) {
+    @DeleteMapping(value = {"/{id}", "/delete/{id}"})
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        if (id == null) {
+            String msg = factory.objectNode().put("error", "Invite id is null").toString();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+        }
+
         Optional<InviteModel> oInviteModel = inviteRepo.findById(id);
-        ObjectNode root = factory.objectNode();
 
         if (oInviteModel.isPresent()) {
             try {
                 inviteRepo.delete(oInviteModel.get());
-                root.put(Constants.STATUS, Constants.STATUS_OK);
-                root.put(Constants.INFO, "Deletion successful");
-                root.put(Constants.ID, id);
+                return ResponseEntity.status(HttpStatus.OK).body(null);
             } catch (Exception e) {
-                thinkingClass.populateErrorNode(e, root);
-                root.put(Constants.ID, id);
                 e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
-            return root.toString();
         } else {
-            root.put(Constants.STATUS, Constants.STATUS_OK);
-            root.put(Constants.INFO, "Invite not found!");
-            root.put(Constants.ID, id);
-            return root.toString();
+            String msg = factory.objectNode().put("error", "Invite not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
     }
 
     /**
      * Get invite info with accompanying event
      *
-     * @param id Invite id
+     * @param id Id of invite
      * @return JSON String
      */
-    @PostMapping(value = "/get")
-    public String getInvite(@RequestParam("inviteId") long id) {
-        Optional<InviteModel> oInviteModel = inviteRepo.findById(id);
-        ObjectNode root = factory.objectNode();
-
-        if (oInviteModel.isPresent()) {
-            InviteModel inviteModel = oInviteModel.get();
-            Optional<EventModel> oEventModel = eventRepo.findById(inviteModel.getEventId());
-
-            if (oEventModel.isPresent()) {
-                EventModel eventModel = oEventModel.get();
-
-                root.putPOJO("invite", thinkingClass.getInviteNode(inviteModel));
-                root.putPOJO("event", thinkingClass.getEventNode(eventModel));
-            } else {
-                root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-                root.put(Constants.INFO, "Event not found");
-                root.put(Constants.ID, inviteModel.getEventId());
-            }
-        } else {
-            root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-            root.put(Constants.INFO, "Invite not found");
-            root.put(Constants.ID, id);
+    @PostMapping(value = "/get/{id}")
+    public ResponseEntity<String> get(@PathVariable Long id) {
+        if (id == null) {
+            String msg = factory.objectNode().put("error", "Invite id is null").toString();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
         }
-        return root.toString();
+
+        Optional<InviteModel> oInviteModel = inviteRepo.findById(id);
+        if (!oInviteModel.isPresent()) {
+            String msg = factory.objectNode().put("error", "Invite not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+        }
+
+        InviteModel inviteModel = oInviteModel.get();
+
+        Optional<EventModel> oEventModel = eventRepo.findById(inviteModel.getEventId());
+        if (!oEventModel.isPresent()) {
+            String msg = factory.objectNode().put("error", "Event not found").toString();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+        }
+
+        EventModel eventModel = oEventModel.get();
+
+        ObjectNode root = factory.objectNode();
+        root.putPOJO("invite", thinkerService.getInviteNode(inviteModel));
+        root.putPOJO("event", thinkerService.getEventNode(eventModel));
+
+        return ResponseEntity.status(HttpStatus.OK).body(root.toString());
     }
 }

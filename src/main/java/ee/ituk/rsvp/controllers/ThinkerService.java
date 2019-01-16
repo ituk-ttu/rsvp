@@ -14,10 +14,10 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 
 @Service
-public class ThinkingClass {
+public class ThinkerService {
     private JsonNodeFactory factory;
 
-    public ThinkingClass() {
+    public ThinkerService() {
         factory = new JsonNodeFactory(false);
     }
 
@@ -26,27 +26,9 @@ public class ThinkingClass {
     @Autowired
     InviteRepo inviteRepo;
 
-    public ObjectNode getInviteNode(InviteModel inviteModel) {
-        ObjectNode root = factory.objectNode();
-        this.populateInviteNode(inviteModel, root);
-        return root;
-    }
-
-    public void populateInviteNode(InviteModel inviteModel, ObjectNode root) {
-        root.put(Constants.ID, inviteModel.getId());
-        root.put(Constants.E_ID, inviteModel.getEventId());
-        root.put(Constants.I_NAME, inviteModel.getName());
-        root.put(Constants.INFO, inviteModel.getInfo());
-        root.put(Constants.I_ISANSWERED, inviteModel.isComing());
-    }
-
     public ObjectNode getEventNode(EventModel eventModel) {
         ObjectNode root = factory.objectNode();
-        this.populateEventNode(eventModel, root);
-        return root;
-    }
 
-    public void populateEventNode(EventModel eventModel, ObjectNode root) {
         root.put(Constants.ID, eventModel.getId());
         root.put(Constants.E_ISPUBLIC, eventModel.isPublic());
         root.put(Constants.E_CREATORID, eventModel.getCreatorId());
@@ -55,17 +37,8 @@ public class ThinkingClass {
         root.put(Constants.E_PLACE, eventModel.getEventPlace());
         root.put(Constants.INFO, eventModel.getInfo());
         root.put(Constants.E_EXPIRE, eventModel.getInviteExpire());
-    }
 
-    public ObjectNode getErrorNode(Exception e) {
-        ObjectNode root = factory.objectNode();
-        this.populateErrorNode(e, root);
         return root;
-    }
-
-    public void populateErrorNode(Exception e, ObjectNode root) {
-        root.put(Constants.STATUS, Constants.STATUS_NOTOK);
-        root.put(Constants.ERROR, e.getClass().getSimpleName());
     }
 
     public String createValidationErrorNode(Errors errors) {
@@ -76,5 +49,16 @@ public class ThinkingClass {
         }
         root.putPOJO("errors", errorArray);
         return root.toString();
+    }
+
+    public ObjectNode getInviteNode(InviteModel inviteModel) {
+        ObjectNode root = factory.objectNode();
+
+        root.put(Constants.ID, inviteModel.getId());
+        root.put(Constants.E_ID, inviteModel.getEventId());
+        root.put(Constants.I_NAME, inviteModel.getName());
+        root.put(Constants.INFO, inviteModel.getInfo());
+        root.put(Constants.I_ISANSWERED, inviteModel.getComing());
+        return root;
     }
 }
