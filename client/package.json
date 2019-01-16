@@ -9,9 +9,12 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "moment": "^2.23.0",
     "vue": "^2.5.21",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue2-timepicker": "^0.1.4",
+    "vuejs-datepicker": "^1.5.4"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.3.0",

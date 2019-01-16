@@ -20,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/events")
+@CrossOrigin
 public class EventsController {
     private JsonNodeFactory factory;
 
@@ -71,7 +72,7 @@ public class EventsController {
      * @return JSON string
      */
     @PostMapping(value = {"/", "/create"})
-    public ResponseEntity<String> create(@Valid @RequestBody EventModel eventModel, Errors errors) {
+    public ResponseEntity<String> create(@RequestBody EventModel eventModel, Errors errors) {
         try {
             validator.validate(eventModel, errors);
 

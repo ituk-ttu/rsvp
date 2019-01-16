@@ -22,8 +22,8 @@ public class EventRequestValidator implements Validator {
         EventModel eventModel = (EventModel) obj;
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "creatorId", "creatorId.empty", "CreatorID is null or empty");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "eventName", "eventName.empty", "EventName is null or empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "eventPlace", "eventPlace.empty", "EventPlae is null or empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "info", "eventName.info", "Info is null or empty");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "eventPlace", "eventPlace.empty", "EventPlace is null or empty");
+        ValidationUtils.rejectIfEmpty(errors, "info", "eventName.info", "Info is null or empty");
 
         // Time validation
         Long eventTime = eventModel.getEventTime();
