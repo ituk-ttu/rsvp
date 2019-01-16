@@ -7,7 +7,6 @@ import ee.ituk.rsvp.database.EventModel;
 import ee.ituk.rsvp.database.EventRepo;
 import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
-import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.validation.InviteRequestValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +65,7 @@ public class InvitesController {
     public ResponseEntity<String> create(@Valid @RequestBody InviteModel inviteModel, Errors errors) {
         try {
             validator.validate(inviteModel, errors);
+            validator.checkForDataValidity(inviteModel, errors);
 
             if (errors.hasErrors())
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));

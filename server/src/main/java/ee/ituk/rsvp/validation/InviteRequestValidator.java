@@ -31,26 +31,29 @@ public class InviteRequestValidator implements Validator {
         if (inviteModel.getInfo() == null)
             errors.reject("invite.info.null", "Info is null");
 
-        Long eventid = inviteModel.getEventId();
-
-        if (eventid == null) {
+        if (inviteModel.getEventId() == null)
             errors.reject("invite.eventid.empty", "EventId is empty");
+
+        if (inviteModel.getComing() == null)
+            errors.reject("invite.coming.empty", "Coming is empty");
+
+    }
+
+    public void checkForDataValidity(Object target, Errors errors) {
+        InviteModel inviteModel = (InviteModel) target;
+
+        long eventid = inviteModel.getEventId();
+
+        if (!eventRepo.existsById(eventid)) {
+            errors.reject("invite.eventid.nonexistant", "Event with id doesn't exist");
         } else {
-            if (!eventRepo.existsById(eventid)) {
-                errors.reject("invite.eventid.nonexistant", "Event with id doesn't exist");
-            } else {
-                if (inviteModel.getComing() == null) {
-                    errors.reject("invite.coming.empty", "Coming is empty");
-                } else {
-                    Long expiryMillis = eventRepo.findById(eventid).get().getInviteExpire();
+            Long expiryMillis = eventRepo.findById(eventid).get().getInviteExpire();
 
-                    LocalDateTime now = LocalDateTime.now();
-                    LocalDateTime expiryLDT = LocalDateTime.ofInstant(Instant.ofEpochMilli(expiryMillis), ZoneId.systemDefault());
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime expiryLDT = LocalDateTime.ofInstant(Instant.ofEpochMilli(expiryMillis), ZoneId.systemDefault());
 
-                    if (expiryLDT.isBefore(now))
-                        errors.reject("invite.expired", "Event's deadline has passed");
-                }
-            }
+            if (expiryLDT.isBefore(now))
+                errors.reject("invite.expired", "Event's deadline has passed");
         }
     }
 }

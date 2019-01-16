@@ -43,10 +43,6 @@ public class EventRequestValidator implements Validator {
         }
     }
 
-    private boolean isInvalidInputString(String input) {
-        return (input == null || input.trim().length() == 0);
-    }
-
     private boolean isTimeInvalid(Long longTime) {
         return (longTime == null || longTime < 0);
     }
