@@ -33,3 +33,9 @@ jar {
         attributes 'Main-Class': 'ee.ituk.rsvp.Application'
     }
 }
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

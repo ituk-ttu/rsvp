@@ -9,12 +9,12 @@ import ee.ituk.rsvp.database.InviteModel;
 import ee.ituk.rsvp.database.InviteRepo;
 import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.validation.EventRequestValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.Optional;
 
@@ -22,20 +22,19 @@ import java.util.Optional;
 @RequestMapping("/events")
 public class EventsController {
     private JsonNodeFactory factory;
-    private ThinkingClass thinkingClass;
 
     public EventsController() {
         factory = new JsonNodeFactory(false);
-        thinkingClass = new ThinkingClass();
-
     }
 
-    @Autowired
-    EventRequestValidator validator;
-    @Autowired
-    EventRepo eventRepo;
-    @Autowired
-    InviteRepo inviteRepo;
+    @Resource
+    private ThinkerService thinkerService;
+    @Resource
+    private EventRequestValidator validator;
+    @Resource
+    private EventRepo eventRepo;
+    @Resource
+    private InviteRepo inviteRepo;
 
     /**
      * Return all events currently in database
@@ -44,16 +43,15 @@ public class EventsController {
      */
     @GetMapping(value = {"", "/", "/all"})
     public ResponseEntity<String> all() {
-
         try {
             ArrayNode events = factory.arrayNode();
             for (EventModel eventModel : eventRepo.findAll()) {
-                ObjectNode event = thinkingClass.getEventNode(eventModel);
+                ObjectNode event = thinkerService.getEventNode(eventModel);
 
                 ArrayNode invites = factory.arrayNode();
 
                 for (InviteModel inviteModel : inviteRepo.findByEventId(eventModel.getId())) {
-                    invites.add(thinkingClass.getInviteNode(inviteModel));
+                    invites.add(thinkerService.getInviteNode(inviteModel));
                 }
 
                 event.putPOJO(Constants.INVITES, invites);
@@ -78,10 +76,12 @@ public class EventsController {
             validator.validate(eventModel, errors);
 
             if (errors.hasErrors())
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkingClass.createValidationErrorNode(errors));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
 
             EventModel savedModel = eventRepo.save(eventModel);
-            return ResponseEntity.status(HttpStatus.CREATED).body(null);
+
+            String msg = factory.objectNode().put("eventId", savedModel.getId()).toString();
+            return ResponseEntity.status(HttpStatus.CREATED).body(msg);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -103,13 +103,13 @@ public class EventsController {
     @PutMapping(value = {"/{id}", "/edit/{id}"})
     public ResponseEntity<String> edit(@PathVariable Long id, @Valid @RequestBody EventModel eventModel, Errors errors) {
         if (id == null) {
-            String msg = factory.objectNode().put("error", "Event ID is null").toString();
+            String msg = factory.objectNode().put("error", "Event id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
         }
 
         validator.validate(eventModel, errors);
         if (errors.hasErrors())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkingClass.createValidationErrorNode(errors));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
 
         if (eventRepo.existsById(id)) {
             try {
@@ -136,7 +136,7 @@ public class EventsController {
     @DeleteMapping(value = {"/{id}", "/delete/{id}"})
     public ResponseEntity<String> delete(@PathVariable Long id) {
         if (id == null) {
-            String msg = factory.objectNode().put("error", "Event ID is null").toString();
+            String msg = factory.objectNode().put("error", "Event id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
         }
 
