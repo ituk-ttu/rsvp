@@ -8,21 +8,20 @@ import javax.persistence.*;
 @Entity
 @Table(name="invites")
 public class InviteModel {
-    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Getter private long id;
+    @Id @Getter private long id;
 
-    @Column(name="event_id", nullable = false)
-    @Getter @Setter private long eventId;
+    @Column(nullable = false)
+    @Getter @Setter private Long eventId;
 
-    @Column(name="name", nullable = false)
+    @Column(nullable = false)
     @Getter @Setter private String name;
 
-    @Column(name="info", nullable = false)
+    @Column(nullable = false)
     @Getter @Setter private String info;
 
-    @Column(name="answer", nullable = false)
-    @Getter @Setter private boolean coming;
+    @Column(nullable = false)
+    @Getter @Setter private Boolean coming;
 
     protected InviteModel() {}
 

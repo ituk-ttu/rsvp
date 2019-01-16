@@ -4,12 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.PositiveOrZero;
-import java.io.Serializable;
 
 @Entity
 @Table(name="events")
-public class EventModel implements Serializable {
+public class EventModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Id @Getter private long id;
 
