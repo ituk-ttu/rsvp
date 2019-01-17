@@ -11,11 +11,14 @@ import ee.ituk.rsvp.util.Constants;
 import ee.ituk.rsvp.validation.EventRequestValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -68,21 +71,35 @@ public class EventsController {
     /**
      * Create an event and returns it's data
      *
-     * @param eventModel
+     * @param eventModels
      * @return JSON string
      */
     @PostMapping(value = {"/", "/create"})
-    public ResponseEntity<String> create(@RequestBody EventModel eventModel, Errors errors) {
+    public ResponseEntity<String> create(@RequestBody List<EventModel> eventModels) {
         try {
-            validator.validate(eventModel, errors);
+            ArrayList<EventModel> toSave = new ArrayList<>();
+            ArrayNode root = factory.arrayNode();
 
-            if (errors.hasErrors())
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+            for (EventModel eventModel : eventModels) {
+                BindException result = new BindException(eventModel, "eventModel");
 
-            EventModel savedModel = eventRepo.save(eventModel);
+                validator.validate(eventModel, result);
+                if (result.hasErrors()) {
+                    ObjectNode eventNode = thinkerService.getEventNode(eventModel);
+                    ObjectNode errorNode = thinkerService.createValidationErrorNode(result);
 
-            String msg = factory.objectNode().put("eventId", savedModel.getId()).toString();
-            return ResponseEntity.status(HttpStatus.CREATED).body(msg);
+                    eventNode.putPOJO("errors", errorNode.findValue("errors"));
+                    root.add(eventNode);
+                } else {
+                    toSave.add(eventModel);
+                }
+            }
+            if (!root.elements().hasNext()) {
+                eventRepo.saveAll(toSave);
+                return ResponseEntity.status(HttpStatus.CREATED).body(null);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(root.toString());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -102,7 +119,7 @@ public class EventsController {
      * @return JSON String
      */
     @PutMapping(value = {"/{id}", "/edit/{id}"})
-    public ResponseEntity<String> edit(@PathVariable Long id, @Valid @RequestBody EventModel eventModel, Errors errors) {
+    public ResponseEntity<String> edit(@PathVariable Long id, @RequestBody EventModel eventModel, Errors errors) {
         if (id == null) {
             String msg = factory.objectNode().put("error", "Event id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
@@ -110,7 +127,7 @@ public class EventsController {
 
         validator.validate(eventModel, errors);
         if (errors.hasErrors())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors).toString());
 
         if (eventRepo.existsById(id)) {
             try {

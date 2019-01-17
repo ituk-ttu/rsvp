@@ -68,7 +68,7 @@ public class InvitesController {
             validator.checkForDataValidity(inviteModel, errors);
 
             if (errors.hasErrors())
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors).toString());
 
             inviteModel.setComing(false);
             InviteModel savedModel = inviteRepo.save(inviteModel);
@@ -97,7 +97,7 @@ public class InvitesController {
 
         validator.validate(inviteModel, errors);
         if (errors.hasErrors())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors).toString());
 
         if (inviteRepo.existsById(id)) {
             try {

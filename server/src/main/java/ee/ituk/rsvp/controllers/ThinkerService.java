@@ -41,14 +41,14 @@ public class ThinkerService {
         return root;
     }
 
-    public String createValidationErrorNode(Errors errors) {
+    public ObjectNode createValidationErrorNode(Errors errors) {
         ObjectNode root = factory.objectNode();
         ArrayNode errorArray = factory.arrayNode();
         for (ObjectError objectError : errors.getAllErrors()) {
             errorArray.add(objectError.getDefaultMessage());
         }
         root.putPOJO("errors", errorArray);
-        return root.toString();
+        return root;
     }
 
     public ObjectNode getInviteNode(InviteModel inviteModel) {
