@@ -55,6 +55,18 @@
       }
     },
     methods: {
+      getEventRequestData() {
+        return {
+          id: 0,
+          isPublic: this.selected.isPublic,
+          creatorId: this.selected.creatorId,
+          eventName: this.selected.eventName,
+          eventTime: this.selected.eventTime,
+          eventPlace: this.selected.eventPlace,
+          info: this.selected.info,
+          inviteExpire: this.selected.inviteExpire
+        }
+      },
       onDelete() {
         if (confirm("Are you sure you want to delete this event?")) {
           axios.delete("/events/" + this.selected.id)
@@ -68,39 +80,21 @@
       },
       onSubmit() {
         if (this.selected.id === -1) {
-          console.log("dsada")
-          axios.post("/events/", {
-            id: 0,
-            isPublic: this.selected.isPublic,
-            creatorId: this.selected.creatorId,
-            eventName: this.selected.eventName,
-            eventTime: this.selected.eventTime,
-            eventPlace: this.selected.eventPlace,
-            info: this.selected.info,
-            inviteExpire: this.selected.inviteExpire
-          })
+          axios.post("/events/", this.getEventRequestData())
             .then(res => {
 
             }).catch(err => {
               console.log(err)
           })
         } else {
-          axios.put("/events/" + this.selected.id, {
-            id: 0,
-            isPublic: this.selected.isPublic,
-            creatorId: this.selected.creatorId,
-            eventName: this.selected.eventName,
-            eventTime: this.selected.eventTime,
-            eventPlace: this.selected.eventPlace,
-            info: this.selected.info,
-            inviteExpire: this.selected.inviteExpire
-          })
+          axios.put("/events/" + this.selected.id, this.getEventRequestData())
             .then(res => {
 
             }).catch(err => {
             console.log(err)
           })
         }
+        this.getEvents()
       },
       getEvents() {
         this.selected = this.$data._emptyEvent

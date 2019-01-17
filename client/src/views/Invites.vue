@@ -1,8 +1,8 @@
 <template>
   <div>
     <form>
-      <label for="selection">Select invite:</label>
-      <select id="selection" v-model="selected">
+      <label for="select-invite">Select invite:</label>
+      <select id="select-invite" v-model="selected_invite">
         <option :value="this.$data._emptyInvite">-Create new invite-</option>
         <option v-for="i in invites" :value="i">
           {{i.name}}
@@ -10,20 +10,27 @@
       </select>
 
       <label for="name">Person's name:</label>
-      <input type="text" id="name" v-model="selected.name">
+      <input type="text" id="name" v-model="selected_invite.name">
 
-      <input type="checkbox" id="coming" v-model="selected.isPublic"><label class="light" for="coming">Coming</label>
+      <input type="checkbox" id="coming" v-model="selected_invite.isComing"><label class="light" for="coming">Coming</label>
+      <br><br>
 
 
       <label for="info">Info:</label>
-      <textarea id="info" v-model="selected.info"></textarea>
+      <textarea id="info" v-model="selected_invite.info"></textarea>
 
+      <label for="select-event">Select event:</label>
+      <select id="select-event" v-model="extractEventId">
+        <option v-for="i in events" :value="i">
+          {{i.eventName}}
+        </option>
+      </select>
 
       <button class="submit" @click.prevent="onSubmit">Save</button>
-      <button class="delete" @click.prevent="onDelete" v-if="selected.id !== -1">Delete</button>
+      <button class="delete" @click.prevent="onDelete" v-if="selected_invite.id !== -1">Delete</button>
       <label>Form by <a target="_blank" href="https://codepen.io/matthu185/pen/myyvgr">Matthew Largent</a> </label>
     </form>
-    {{selected}}
+    {{selected_invite}}
   </div>
 </template>
 
@@ -34,23 +41,34 @@
     name: 'InviteEdit',
     data() {
       return {
-        timeFormat: 'DD.MM.YYYY HH:mm',
-        selected: '',
+        selected_invite: '',
+        selected_event: '',
         _emptyInvite: {
           id: -1,
           eventId: 0,
           name: '',
           info: '',
+          isComing: false
         },
-        invites: []
+        invites: [],
+        events: []
       }
     },
     methods: {
+      getInviteRequestData() {
+        return {
+          id: 0,
+          eventId: this.selected_invite.eventId,
+          name: this.selected_invite.name,
+          info: this.selected_invite.info,
+          coming: this.selected_invite.isComing
+        }
+      },
       onDelete() {
         if (confirm("Are you sure you want to delete this invite?")) {
-          axios.delete("/invites/" + this.selected.id)
+          axios.delete("/invites/" + this.selected_invite.id)
             .then(res => {
-              this.getEvents()
+              this.getInvites()
             })
             .catch(err => {
               console.log(err)
@@ -58,34 +76,15 @@
         }
       },
       onSubmit() {
-        if (this.selected.id === -1) {
-          console.log("dsada")
-          axios.post("/events/", {
-            id: 0,
-            isPublic: this.selected.isPublic,
-            creatorId: this.selected.creatorId,
-            eventName: this.selected.eventName,
-            eventTime: this.selected.eventTime,
-            eventPlace: this.selected.eventPlace,
-            info: this.selected.info,
-            inviteExpire: this.selected.inviteExpire
-          })
+        if (this.selected_invite.id === -1) {
+          axios.post("/invites/", this.getInviteRequestData())
             .then(res => {
 
             }).catch(err => {
-            console.log(err)
+            console.log(err.response)
           })
         } else {
-          axios.put("/events/" + this.selected.id, {
-            id: 0,
-            isPublic: this.selected.isPublic,
-            creatorId: this.selected.creatorId,
-            eventName: this.selected.eventName,
-            eventTime: this.selected.eventTime,
-            eventPlace: this.selected.eventPlace,
-            info: this.selected.info,
-            inviteExpire: this.selected.inviteExpire
-          })
+          axios.put("/invites/" + this.selected_invite.id, this.getInviteRequestData())
             .then(res => {
 
             }).catch(err => {
@@ -94,19 +93,40 @@
         }
       },
       getInvites() {
-        this.selected = this.$data._emptyInvite
+        this.selected_invite = this.$data._emptyInvite
         axios.get('/invites/')
           .then(res => {
             if (res.status === 200) {
               this.invites = res.data
             }
           })
+      },
+      getEvents() {
+        this.selected_event = ''
+        axios.get('/events/')
+          .then(res => {
+            if (res.status === 200) {
+              this.events = res.data
+            }
+          })
+      }
+    },
+    computed: {
+      extractEventId: {
+        get() {
+          return this.events.find(x => x.id === this.selected_invite.eventId)
+        },
+        set(event) {
+          this.selected_event = event
+          this.selected_invite.eventId = event.id
+        }
       }
     },
     mounted() {
-      if (this.selected === '') {
-        this.selected = this.$data._emptyInvite
+      if (this.selected_invite === '') {
+        this.selected_invite = this.$data._emptyInvite
       }
+      this.getEvents()
       this.getInvites()
     }
   }
