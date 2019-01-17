@@ -26,7 +26,7 @@ public class InviteRequestValidatorTest {
     }
 
     @Test
-    public void invalidInviteValidatorShouldSucceed() {
+    public void invalidInviteValidatorShouldFail() {
         InviteRequestValidator validator = new InviteRequestValidator();
 
         InviteModel event = TestsUtils.invalidInvite();
