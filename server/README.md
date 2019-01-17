@@ -21,7 +21,7 @@
 |**Data Params** | ```{"creatorId": String, "eventName": String, "eventTime": Long, "eventPlace": String, "info": String, "inviteExpire": Long } ```
 |**Success Response** | Code: 201, Content: None
 |**Error Response** | Code: 400, Content: JSON list of errors in english <br> Code: 500, Content: None
-|**Notes** | 
+|**Notes** | `eventTime` and `inviteExpire` use seconds from epoch format
 
 |   |   |
 |---|---|
@@ -32,7 +32,7 @@
 |**Data Params** | ```{"creatorId": String, "eventName": String, "eventTime": Long, "eventPlace": String, "info": String, "inviteExpire": Long } ```
 |**Success Response** | Code: 200, Content: `{"eventId": Long}`
 |**Error Response** | Code: 400, Content: JSON list of errors in english <br> Code: 404, Content: `{error: "Event not found"}` <br> Code: 500, Content: None
-|**Notes** | 
+|**Notes** | `eventTime` and `inviteExpire` use seconds from epoch format
 
 |   |   |
 |---|---|
