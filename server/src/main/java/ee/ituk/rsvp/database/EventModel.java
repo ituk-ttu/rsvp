@@ -1,5 +1,6 @@
 package ee.ituk.rsvp.database;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ public class EventModel {
     @Getter @Setter private String creatorId;
 
     @Column(nullable = false)
+    @JsonProperty
     @Getter @Setter private boolean isPublic;
 
     @Column(nullable = false)
@@ -26,7 +28,7 @@ public class EventModel {
     @Column(nullable = false)
     @Getter @Setter private String eventPlace;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     @Getter @Setter private String info;
 
     @Column(nullable = false)

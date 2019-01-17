@@ -9,6 +9,8 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     { path: '/', name: 'home', component: Home },
-    { path: '/events', name: 'events', component: () => import('./views/Events.vue') }
+    { path: '/events', name: 'events', component: () => import('./views/Events.vue') },
+    { path: '/invites', name: 'invites', component: () => import('./views/Invites.vue') }
+
   ]
 })

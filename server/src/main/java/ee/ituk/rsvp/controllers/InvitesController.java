@@ -19,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/invites")
+@CrossOrigin
 public class InvitesController {
     private JsonNodeFactory factory;
 
@@ -41,7 +42,7 @@ public class InvitesController {
      * @return JSON String
      */
     @GetMapping(value = {"", "/", "/all"})
-    public ResponseEntity<String> showAll() {
+    public ResponseEntity<String> all() {
         try {
             ArrayNode invites = factory.arrayNode();
             for (InviteModel inviteModel : inviteRepo.findAll()) {
@@ -62,7 +63,7 @@ public class InvitesController {
      * @return JSON String
      */
     @PostMapping(value = {"/", "/create"})
-    public ResponseEntity<String> create(@Valid @RequestBody InviteModel inviteModel, Errors errors) {
+    public ResponseEntity<String> create(@RequestBody InviteModel inviteModel, Errors errors) {
         try {
             validator.validate(inviteModel, errors);
             validator.checkForDataValidity(inviteModel, errors);

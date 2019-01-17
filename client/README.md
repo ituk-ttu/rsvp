@@ -1,7 +1,3 @@
-# client
-
-Compiling also 
-
 #### Commands
 | | |
 |---|---|

@@ -14,14 +14,14 @@
 
 |   |   |
 |---|---|
-|**Description**| Create events in bulk
+|**Description**| Create event
 |**URL**        | `/events/`, `/events/create`
 |**Method**     | `POST`
 |**URL Params** | None
-|**Data Params** | ```[ {"creatorId": String, "eventName": String, "eventTime": Long, "eventPlace": String, "info": String, "inviteExpire": Long } ]```
+|**Data Params** | ```{"creatorId": String, "eventName": String, "eventTime": Long, "eventPlace": String, "info": String, "inviteExpire": Long } ```
 |**Success Response** | Code: 201, Content: None
 |**Error Response** | Code: 400, Content: JSON list of errors in english <br> Code: 500, Content: None
-|**Notes** | Data params iss a list. `eventTime` and `inviteExpire` use seconds from epoch format
+|**Notes** | `eventTime` and `inviteExpire` use seconds from epoch format
 
 |   |   |
 |---|---|
