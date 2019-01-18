@@ -1,5 +1,6 @@
 package ee.ituk.rsvp.database;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,7 +22,8 @@ public class InviteModel {
     @Getter @Setter private String info;
 
     @Column(nullable = false)
-    @Getter @Setter private Boolean coming;
+    @JsonProperty
+    @Getter @Setter private Boolean isComing;
 
     protected InviteModel() {}
 
@@ -29,7 +31,7 @@ public class InviteModel {
         this.name = name;
         this.eventId = eventId;
         this.info = info;
-        this.coming = false;
+        this.isComing = false;
     }
 
     public void hiddenIdSetter(long id) {

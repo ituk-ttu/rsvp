@@ -58,7 +58,7 @@ public class ThinkerService {
         root.put(Constants.E_ID, inviteModel.getEventId());
         root.put(Constants.I_NAME, inviteModel.getName());
         root.put(Constants.INFO, inviteModel.getInfo());
-        root.put(Constants.I_ISANSWERED, inviteModel.getComing());
+        root.put(Constants.I_ISANSWERED, inviteModel.getIsComing());
         return root;
     }
 }

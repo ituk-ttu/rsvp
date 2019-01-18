@@ -71,7 +71,7 @@ public class InvitesController {
             if (errors.hasErrors())
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thinkerService.createValidationErrorNode(errors).toString());
 
-            inviteModel.setComing(false);
+            inviteModel.setIsComing(false);
             InviteModel savedModel = inviteRepo.save(inviteModel);
 
             String msg = factory.objectNode().put("inviteId", savedModel.getId()).toString();

@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <div class="container">
+    <div class="overlay"></div>
+
     <form>
       <label for="select-invite">Select invite:</label>
       <select id="select-invite" v-model="selected_invite">
@@ -30,7 +32,7 @@
       <button class="delete" @click.prevent="onDelete" v-if="selected_invite.id !== -1">Delete</button>
       <label>Form by <a target="_blank" href="https://codepen.io/matthu185/pen/myyvgr">Matthew Largent</a> </label>
     </form>
-    {{selected_invite}}
+    <div class="clear-fix"></div>
   </div>
 </template>
 
@@ -61,7 +63,7 @@
           eventId: this.selected_invite.eventId,
           name: this.selected_invite.name,
           info: this.selected_invite.info,
-          coming: this.selected_invite.isComing
+          isComing: this.selected_invite.isComing
         }
       },
       onDelete() {
@@ -88,7 +90,7 @@
             .then(res => {
 
             }).catch(err => {
-            console.log(err)
+            console.log(err.response)
           })
         }
       },
@@ -139,13 +141,34 @@
     box-sizing: border-box;
   }
 
-  body {
+  .container {
     font-family: 'Nunito', sans-serif;
     color: #384047;
+    width: 460px;
+
+    display: flex;
+    position: relative;
+  }
+
+  .overlay {
+    display: none;
+    border-radius: 8px;
+    background: rgba(139, 139, 139, 0.5);
+    z-index: 1;
+
+    flex: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
   }
 
   form {
-    max-width: 300px;
+    flex: 1;
+    width: 100%;
+
     margin: 10px auto;
     padding: 10px 20px;
     background: #f4f7f8;
@@ -173,14 +196,13 @@
     border: none;
     font-size: 16px;
     height: auto;
-    margin: 0;
     outline: 0;
     padding: 15px;
     width: 100%;
     background-color: #e8eeef;
     color: #8a97a0;
     box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
-    margin-bottom: 30px;
+    margin: 0 0 30px;
   }
 
   textarea {
@@ -242,23 +264,13 @@
     display: inline;
   }
 
-  .number {
-    background-color: #5fcf80;
-    color: #fff;
-    height: 30px;
-    width: 30px;
-    display: inline-block;
-    font-size: 0.8em;
-    margin-right: 4px;
-    line-height: 30px;
-    text-align: center;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.2);
-    border-radius: 100%;
-  }
-
   @media screen and (min-width: 480px) {
     form {
       max-width: 480px;
     }
+  }
+
+  .clear-fix {
+    clear: both;
   }
 </style>

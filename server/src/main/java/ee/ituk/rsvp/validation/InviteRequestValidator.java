@@ -34,8 +34,8 @@ public class InviteRequestValidator implements Validator {
         if (inviteModel.getEventId() == null)
             errors.reject("invite.eventid.empty", "EventId is empty");
 
-        if (inviteModel.getComing() == null)
-            errors.reject("invite.coming.empty", "Coming is empty");
+        if (inviteModel.getIsComing() == null)
+            errors.reject("invite.isComing.empty", "Coming is empty");
 
     }
 
