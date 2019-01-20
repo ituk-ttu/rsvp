@@ -116,17 +116,19 @@ export default {
           }).catch(err => {
             this.showOverlay(false)
             console.log(err)
-          })
+          }).finally(
+            this.getEvents()
+          )
       } else {
         axios.put('/events/' + this.selected.id, this.getEventRequestData())
           .then(res => {
             this.showOverlay(true)
-
           }).catch(err => {
             this.showOverlay(false)
             console.log(err)
-          })
-        this.getEvents()
+          }).finally(
+            this.getEvents()
+          )
       }
     },
     getEvents () {
