@@ -37,4 +37,9 @@ public class InviteModel {
     public void hiddenIdSetter(long id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return "I: " + this.name + " INFO: " + this.info + " COMING: " + this.isComing + " EID: " + this.eventId;
+    }
 }

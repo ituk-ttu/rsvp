@@ -17,13 +17,13 @@ public class EventModel {
 
     @Column(nullable = false)
     @JsonProperty
-    @Getter @Setter private boolean isPublic;
+    @Getter @Setter private Boolean isPublic;
 
     @Column(nullable = false)
     @Getter @Setter private String eventName;
 
     @Column(nullable = false)
-    @Getter @Setter private long eventTime;
+    @Getter @Setter private Long eventTime;
 
     @Column(nullable = false)
     @Getter @Setter private String eventPlace;
@@ -32,7 +32,7 @@ public class EventModel {
     @Getter @Setter private String info;
 
     @Column(nullable = false)
-    @Getter @Setter private long inviteExpire;
+    @Getter @Setter private Long inviteExpire;
 
     protected EventModel() {}
 
