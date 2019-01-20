@@ -30,7 +30,7 @@ public class ThinkerService {
         ObjectNode root = factory.objectNode();
 
         root.put(Constants.ID, eventModel.getId());
-        root.put(Constants.E_ISPUBLIC, eventModel.isPublic());
+        root.put(Constants.E_ISPUBLIC, eventModel.getIsPublic());
         root.put(Constants.E_CREATORID, eventModel.getCreatorId());
         root.put(Constants.E_NAME, eventModel.getEventName());
         root.put(Constants.E_TIME, eventModel.getEventTime());

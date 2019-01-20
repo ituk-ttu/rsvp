@@ -115,7 +115,6 @@ public class EventsController {
 
         if (eventRepo.existsById(id)) {
             try {
-                System.out.println(eventModel.isPublic());
                 eventModel.hiddenIdSetter(id);
                 eventRepo.save(eventModel);
 

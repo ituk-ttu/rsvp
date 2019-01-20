@@ -90,7 +90,7 @@ public class InvitesController {
      * @return JSON String
      */
     @PutMapping(value = {"/{id}", "/edit/{id}"})
-    public ResponseEntity<String> edit(@PathVariable Long id, @Valid @RequestBody InviteModel inviteModel, Errors errors) {
+    public ResponseEntity<String> edit(@PathVariable Long id, @RequestBody InviteModel inviteModel, Errors errors) {
         if (id == null) {
             String msg = factory.objectNode().put("error", "Invite id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
