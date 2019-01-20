@@ -1,6 +1,13 @@
 <template>
   <div class="container">
-    <div class="overlay"></div>
+    <form-overlay>
+      <div v-if="overlay" class="overlay">
+        <div class="center">
+          <font-awesome-icon class="success" v-if="success" icon="check-circle"></font-awesome-icon>
+          <font-awesome-icon class="error" v-else icon="times-circle"></font-awesome-icon>
+        </div>
+      </div>
+    </form-overlay>
 
     <form>
       <label for="select-invite">Select invite:</label>
@@ -11,12 +18,13 @@
         </option>
       </select>
 
+      <label>ID: {{selected_invite.id}}</label> <br>
+
       <label for="name">Person's name:</label>
       <input type="text" id="name" v-model="selected_invite.name">
 
       <input type="checkbox" id="coming" v-model="selected_invite.isComing"><label class="light" for="coming">Coming</label>
       <br><br>
-
 
       <label for="info">Info:</label>
       <textarea id="info" v-model="selected_invite.info"></textarea>
@@ -37,101 +45,120 @@
 </template>
 
 <script>
-  import axios from '@/client'
+import axios from '@/client'
+import FormOverlay from '@/components/FormOverlay'
 
-  export default {
-    name: 'InviteEdit',
-    data() {
-      return {
-        selected_invite: '',
-        selected_event: '',
-        _emptyInvite: {
-          id: -1,
-          eventId: 0,
-          name: '',
-          info: '',
-          isComing: false
-        },
-        invites: [],
-        events: []
-      }
-    },
-    methods: {
-      getInviteRequestData() {
-        return {
-          id: 0,
-          eventId: this.selected_invite.eventId,
-          name: this.selected_invite.name,
-          info: this.selected_invite.info,
-          isComing: this.selected_invite.isComing
-        }
+export default {
+  name: 'InviteEdit',
+  components: { FormOverlay },
+  data () {
+    return {
+      overlay: false,
+      success: '',
+      selected_invite: '',
+      selected_event: '',
+      _emptyInvite: {
+        id: -1,
+        eventId: 0,
+        name: '',
+        info: '',
+        isComing: false
       },
-      onDelete() {
-        if (confirm("Are you sure you want to delete this invite?")) {
-          axios.delete("/invites/" + this.selected_invite.id)
-            .then(res => {
-              this.getInvites()
-            })
-            .catch(err => {
-              console.log(err)
-            })
-        }
-      },
-      onSubmit() {
-        if (this.selected_invite.id === -1) {
-          axios.post("/invites/", this.getInviteRequestData())
-            .then(res => {
-
-            }).catch(err => {
-            console.log(err.response)
-          })
-        } else {
-          axios.put("/invites/" + this.selected_invite.id, this.getInviteRequestData())
-            .then(res => {
-
-            }).catch(err => {
-            console.log(err.response)
-          })
-        }
-      },
-      getInvites() {
-        this.selected_invite = this.$data._emptyInvite
-        axios.get('/invites/')
-          .then(res => {
-            if (res.status === 200) {
-              this.invites = res.data
-            }
-          })
-      },
-      getEvents() {
-        this.selected_event = ''
-        axios.get('/events/')
-          .then(res => {
-            if (res.status === 200) {
-              this.events = res.data
-            }
-          })
-      }
-    },
-    computed: {
-      extractEventId: {
-        get() {
-          return this.events.find(x => x.id === this.selected_invite.eventId)
-        },
-        set(event) {
-          this.selected_event = event
-          this.selected_invite.eventId = event.id
-        }
-      }
-    },
-    mounted() {
-      if (this.selected_invite === '') {
-        this.selected_invite = this.$data._emptyInvite
-      }
-      this.getEvents()
-      this.getInvites()
+      invites: [],
+      events: []
     }
+  },
+  methods: {
+    showOverlay (successful) {
+      let self = this
+
+      self.success = successful
+      self.overlay = true
+
+      setTimeout(function () {
+        self.overlay = false
+      }, 2000)
+    },
+    getInviteRequestData () {
+      return {
+        id: 0,
+        eventId: this.selected_invite.eventId,
+        name: this.selected_invite.name,
+        info: this.selected_invite.info,
+        isComing: this.selected_invite.isComing
+      }
+    },
+    onDelete () {
+      if (confirm('Are you sure you want to delete this invite?')) {
+        axios.delete('/invites/' + this.selected_invite.id)
+          .then(res => {
+            this.showOverlay(true)
+            this.getInvites()
+          })
+          .catch(err => {
+            this.showOverlay(false)
+            console.log(err)
+          })
+      }
+    },
+    onSubmit () {
+      if (this.selected_invite.id === -1) {
+        axios.post('/invites/', this.getInviteRequestData())
+          .then(res => {
+            this.showOverlay(true)
+          }).catch(err => {
+            this.showOverlay(false)
+
+            console.log(err.response)
+          })
+      } else {
+        axios.put('/invites/' + this.selected_invite.id, this.getInviteRequestData())
+          .then(res => {
+            this.showOverlay(true)
+          }).catch(err => {
+            this.showOverlay(false)
+            console.log(err.response)
+          })
+      }
+    },
+    getInvites () {
+      this.selected_invite = this.$data._emptyInvite
+      axios.get('/invites/')
+        .then(res => {
+          if (res.status === 200) {
+            this.invites = res.data
+          }
+        })
+    },
+    getEvents () {
+      this.selected_event = ''
+      axios.get('/events/')
+        .then(res => {
+          if (res.status === 200) {
+            this.events = res.data
+          }
+        })
+    }
+  },
+  computed: {
+    extractEventId: {
+      get () {
+        return this.events.find(x => x.id === this.selected_invite.eventId)
+      },
+      set (event) {
+        this.selected_event = event
+        this.selected_invite.eventId = event.id
+      }
+    }
+  },
+  mounted () {
+    if (this.selected_invite === '') {
+      this.selected_invite = this.$data._emptyInvite
+    }
+    this.getEvents()
+    this.getInvites()
   }
+}
 </script>
 
 <style scoped>
@@ -144,32 +171,45 @@
   .container {
     font-family: 'Nunito', sans-serif;
     color: #384047;
-    width: 460px;
+    max-width: 400px;
 
-    display: flex;
     position: relative;
+    display: flex;
   }
 
   .overlay {
-    display: none;
     border-radius: 8px;
     background: rgba(139, 139, 139, 0.5);
-    z-index: 1;
+    font-size: 100px;
 
     flex: 1;
     position: absolute;
-    left: 0;
     top: 0;
-    right: 0;
     bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+  }
 
+  .center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+
+  .success {
+    color: rgba(153, 255, 51, 1);
+  }
+  .error {
+    color: rgba(255, 0, 0, 1);
   }
 
   form {
     flex: 1;
-    width: 100%;
 
-    margin: 10px auto;
     padding: 10px 20px;
     background: #f4f7f8;
     border-radius: 8px;

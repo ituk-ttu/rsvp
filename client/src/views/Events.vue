@@ -1,154 +1,187 @@
 <template>
-  <form>
-    <label for="selection">Select event:</label>
-    <select id="selection" v-model="selected">
-      <option :value="this.$data._emptyEvent">-Create new event-</option>
-      <option v-for="e in events" :value="e">
-        {{e.eventName}}
-      </option>
-    </select>
+  <div class="container">
+    <form-overlay>
+      <div v-if="overlay" class="overlay">
+        <div class="center">
+          <font-awesome-icon class="success" v-if="success" icon="check-circle"></font-awesome-icon>
+          <font-awesome-icon class="error" v-else icon="times-circle"></font-awesome-icon>
+        </div>
+      </div>
+    </form-overlay>
 
-    <label for="name">Event name:</label>
-    <input type="text" id="name" v-model="selected.eventName">
+    <form>
+      <label for="selection">Select event:</label>
+      <select id="selection" v-model="selected">
+        <option :value="this.$data._emptyEvent">-Create new event-</option>
+        <option v-for="e in events" :value="e">
+          {{e.eventName}}
+        </option>
+      </select>
 
-    <input type="checkbox" id="public" v-model="selected.isPublic"><label class="light" for="public">Public</label>
-    <br><br>
+      <label>ID: {{selected.id}}</label> <br>
 
-    <label for="info">Info:</label>
-    <textarea id="info" v-model="selected.info"></textarea>
+      <label for="name">Event name:</label>
+      <input type="text" id="name" v-model="selected.eventName">
 
-    <label for="place">Event place:</label>
-    <input type="text" id="place" v-model="selected.eventPlace">
+      <input type="checkbox" id="public" v-model="selected.isPublic"><label class="light" for="public">Public</label>
+      <br><br>
 
+      <label for="info">Info:</label>
+      <textarea id="info" v-model="selected.info"></textarea>
 
-    <label class="light" for="time">Event time: </label><input type="datetime-local" id="time" v-model="properTime"><br>
-    <label class="light" for="expire">Invite expire: </label><input type="datetime-local" id="expire" v-model="properExpire"><br>
-    <br>
+      <label for="place">Event place:</label>
+      <input type="text" id="place" v-model="selected.eventPlace">
 
-    <button class="submit" @click.prevent="onSubmit">Save</button>
-    <button class="delete" @click.prevent="onDelete" v-if="selected.id !== -1">Delete</button>
-    <label>Form by <a target="_blank" href="https://codepen.io/matthu185/pen/myyvgr">Matthew Largent</a> </label>
-  </form>
+      <label class="light" for="time">Event time: </label><input type="datetime-local" id="time" v-model="properTime"><br>
+      <label class="light" for="expire">Invite expire: </label><input type="datetime-local" id="expire" v-model="properExpire"><br>
+      <br>
+
+      <button class="submit" @click.prevent="onSubmit">Save</button>
+      <button class="delete" @click.prevent="onDelete" v-if="selected.id !== -1">Delete</button>
+      <label>Form by <a target="_blank" href="https://codepen.io/matthu185/pen/myyvgr">Matthew Largent</a> </label>
+    </form>
+  </div>
 </template>
 
 <script>
-  import moment from 'moment'
-  import axios from '@/client'
+import moment from 'moment'
+import axios from '@/client'
+import FormOverlay from '@/components/FormOverlay'
 
-  export default {
-    name: 'EventEdit',
-    data() {
+export default {
+  name: 'EventEdit',
+  components: {
+    FormOverlay
+  },
+  data () {
+    return {
+      overlay: false,
+      success: false,
+      timeFormat: 'DD.MM.YYYY HH:mm',
+      selected: '',
+      _emptyEvent: {
+        id: -1,
+        creatorId: 'The Man',
+        isPublic: false,
+        eventName: '',
+        info: '',
+        eventPlace: '',
+        eventTime: '',
+        inviteExpire: ''
+      },
+      events: []
+    }
+  },
+  methods: {
+    showOverlay (successful) {
+      let self = this
+
+      self.success = successful
+      self.overlay = true
+
+      setTimeout(function () {
+        self.overlay = false
+      }, 2000)
+    },
+    getEventRequestData () {
       return {
-        timeFormat: 'DD.MM.YYYY HH:mm',
-        selected: '',
-        _emptyEvent: {
-          id: -1,
-          creatorId: 'The Man',
-          isPublic: false,
-          eventName: '',
-          info: '',
-          eventPlace: '',
-          eventTime: '',
-          inviteExpire: ''
-        },
-        events: []
+        id: 0,
+        isPublic: this.selected.isPublic,
+        creatorId: this.selected.creatorId,
+        eventName: this.selected.eventName,
+        eventTime: this.selected.eventTime,
+        eventPlace: this.selected.eventPlace,
+        info: this.selected.info,
+        inviteExpire: this.selected.inviteExpire
       }
     },
-    methods: {
-      getEventRequestData() {
-        return {
-          id: 0,
-          isPublic: this.selected.isPublic,
-          creatorId: this.selected.creatorId,
-          eventName: this.selected.eventName,
-          eventTime: this.selected.eventTime,
-          eventPlace: this.selected.eventPlace,
-          info: this.selected.info,
-          inviteExpire: this.selected.inviteExpire
-        }
-      },
-      onDelete() {
-        if (confirm("Are you sure you want to delete this event?")) {
-          axios.delete("/events/" + this.selected.id)
-            .then(res => {
-              this.getEvents()
-            })
-            .catch(err => {
-              console.log(err)
-            })
-        }
-      },
-      onSubmit() {
-        if (this.selected.id === -1) {
-          axios.post("/events/", this.getEventRequestData())
-            .then(res => {
-
-            }).catch(err => {
-              console.log(err)
+    onDelete () {
+      if (confirm('Are you sure you want to delete this event?')) {
+        axios.delete('/events/' + this.selected.id)
+          .then(res => {
+            this.showOverlay(true)
+            this.getInvites()
           })
-        } else {
-          axios.put("/events/" + this.selected.id, this.getEventRequestData())
-            .then(res => {
-
-            }).catch(err => {
+          .catch(err => {
+            this.showOverlay(false)
             console.log(err)
           })
-        }
-        this.getEvents()
-      },
-      getEvents() {
-        this.selected = this.$data._emptyEvent
-        axios.get('/events/')
+      }
+    },
+    onSubmit () {
+      if (this.selected.id === -1) {
+        axios.post('/events/', this.getEventRequestData())
           .then(res => {
-            if (res.status === 200) {
-              this.events = res.data
-            }
+            this.showOverlay(true)
+          }).catch(err => {
+            this.showOverlay(false)
+            console.log(err)
           })
+      } else {
+        axios.put('/events/' + this.selected.id, this.getEventRequestData())
+          .then(res => {
+            this.showOverlay(true)
+
+          }).catch(err => {
+            this.showOverlay(false)
+            console.log(err)
+          })
+        this.getEvents()
       }
     },
-    mounted() {
-      if (this.selected === '') {
-        this.selected = this.$data._emptyEvent
-      }
-      this.getEvents()
-    },
-    computed: {
-      properTime: {
-        get() {
-          if (this.selected.eventTime === '') {
-            return ''
-          } else {
-            let m = moment(this.selected.eventTime, 'X')
-            return m.format("YYYY-MM-DD") + 'T' + m.format("HH:mm")
+    getEvents () {
+      this.selected = this.$data._emptyEvent
+      axios.get('/events/')
+        .then(res => {
+          if (res.status === 200) {
+            this.events = res.data
           }
-        },
-        set(newValue) {
-          if (newValue !== '') {
-            this.selected.eventTime = moment(newValue).unix()
-          } else {
-            this.selected.eventTime = ''
-          }
+        })
+    }
+  },
+  mounted () {
+    if (this.selected === '') {
+      this.selected = this.$data._emptyEvent
+    }
+    this.getEvents()
+  },
+  computed: {
+    properTime: {
+      get () {
+        if (this.selected.eventTime === '') {
+          return ''
+        } else {
+          let m = moment(this.selected.eventTime, 'X')
+          return m.format('YYYY-MM-DD') + 'T' + m.format('HH:mm')
         }
       },
-      properExpire: {
-        get() {
-          if (this.selected.inviteExpire === '') {
-            return ''
-          } else {
-            let m = moment(this.selected.inviteExpire, 'X')
-            return m.format("YYYY-MM-DD") + 'T' + m.format("HH:mm")
-          }
-        },
-        set(newValue) {
-          if (newValue !== '') {
-            this.selected.inviteExpire = moment(newValue).unix()
-          } else {
-            this.selected.inviteExpire = ''
-          }
+      set (newValue) {
+        if (newValue !== '') {
+          this.selected.eventTime = moment(newValue).unix()
+        } else {
+          this.selected.eventTime = ''
+        }
+      }
+    },
+    properExpire: {
+      get () {
+        if (this.selected.inviteExpire === '') {
+          return ''
+        } else {
+          let m = moment(this.selected.inviteExpire, 'X')
+          return m.format('YYYY-MM-DD') + 'T' + m.format('HH:mm')
+        }
+      },
+      set (newValue) {
+        if (newValue !== '') {
+          this.selected.inviteExpire = moment(newValue).unix()
+        } else {
+          this.selected.inviteExpire = ''
         }
       }
     }
   }
+}
 </script>
 
 <style scoped>
@@ -158,14 +191,48 @@
     box-sizing: border-box;
   }
 
-  body {
+  .container {
     font-family: 'Nunito', sans-serif;
     color: #384047;
+    max-width: 400px;
+
+    display: flex;
+    position: relative;
+  }
+
+  .overlay {
+    border-radius: 8px;
+    background: rgba(139, 139, 139, 0.5);
+    font-size: 100px;
+
+    flex: 1;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+  }
+
+  .center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+
+  .success {
+    color: rgba(153, 255, 51, 1);
+  }
+
+  .error {
+    color: rgba(255, 0, 0, 1);
   }
 
   form {
-    max-width: 300px;
-    margin: 10px auto;
+    flex: 1;
     padding: 10px 20px;
     background: #f4f7f8;
     border-radius: 8px;
@@ -259,20 +326,6 @@
   label.light {
     font-weight: 300;
     display: inline;
-  }
-
-  .number {
-    background-color: #5fcf80;
-    color: #fff;
-    height: 30px;
-    width: 30px;
-    display: inline-block;
-    font-size: 0.8em;
-    margin-right: 4px;
-    line-height: 30px;
-    text-align: center;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.2);
-    border-radius: 100%;
   }
 
   @media screen and (min-width: 480px) {

@@ -10,7 +10,7 @@ export default new Router({
   routes: [
     { path: '/', name: 'home', component: Home },
     { path: '/events', name: 'events', component: () => import('./views/Events.vue') },
-    { path: '/invites', name: 'invites', component: () => import('./views/Invites.vue') }
-
+    { path: '/invites', name: 'invites', component: () => import('./views/Invites.vue') },
+    { path: '/inv/:id', name: 'inv', component: () => import('./views/Invitation.vue') }
   ]
 })
