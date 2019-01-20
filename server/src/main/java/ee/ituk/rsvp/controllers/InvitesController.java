@@ -65,6 +65,7 @@ public class InvitesController {
     @PostMapping(value = {"/", "/create"})
     public ResponseEntity<String> create(@RequestBody InviteModel inviteModel, Errors errors) {
         try {
+            System.out.println(inviteModel);
             validator.validate(inviteModel, errors);
             validator.checkForDataValidity(inviteModel, errors);
 
@@ -90,7 +91,7 @@ public class InvitesController {
      * @return JSON String
      */
     @PutMapping(value = {"/{id}", "/edit/{id}"})
-    public ResponseEntity<String> edit(@PathVariable Long id, @RequestBody InviteModel inviteModel, Errors errors) {
+    public ResponseEntity<String> edit(@PathVariable String id, @RequestBody InviteModel inviteModel, Errors errors) {
         if (id == null) {
             String msg = factory.objectNode().put("error", "Invite id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
@@ -123,7 +124,7 @@ public class InvitesController {
      * @return JSON String
      */
     @DeleteMapping(value = {"/{id}", "/delete/{id}"})
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@PathVariable String id) {
         if (id == null) {
             String msg = factory.objectNode().put("error", "Invite id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
@@ -152,7 +153,7 @@ public class InvitesController {
      * @return JSON String
      */
     @PostMapping(value = "/get/{id}")
-    public ResponseEntity<String> get(@PathVariable Long id) {
+    public ResponseEntity<String> get(@PathVariable String id) {
         if (id == null) {
             String msg = factory.objectNode().put("error", "Invite id is null").toString();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);

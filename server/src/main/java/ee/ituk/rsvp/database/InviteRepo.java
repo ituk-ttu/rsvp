@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface InviteRepo extends JpaRepository<InviteModel, Long> {
+public interface InviteRepo extends JpaRepository<InviteModel, String> {
     List<InviteModel> findByEventId(long eventId);
 }
