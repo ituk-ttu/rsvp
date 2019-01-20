@@ -35,8 +35,7 @@ public class InviteRequestValidator implements Validator {
             errors.reject("invite.eventid.empty", "EventId is empty");
 
         if (inviteModel.getIsComing() == null)
-            errors.reject("invite.isComing.empty", "Coming is empty");
-
+            errors.reject("invite.isComing.empty", "IsComing is empty");
     }
 
     public void checkForDataValidity(Object target, Errors errors) {
@@ -50,7 +49,7 @@ public class InviteRequestValidator implements Validator {
             Long expiryMillis = eventRepo.findById(eventid).get().getInviteExpire();
 
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime expiryLDT = LocalDateTime.ofInstant(Instant.ofEpochMilli(expiryMillis), ZoneId.systemDefault());
+            LocalDateTime expiryLDT = LocalDateTime.ofInstant(Instant.ofEpochSecond(expiryMillis), ZoneId.systemDefault());
 
             if (expiryLDT.isBefore(now))
                 errors.reject("invite.expired", "Event's deadline has passed");

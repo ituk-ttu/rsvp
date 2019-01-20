@@ -41,6 +41,9 @@ public class EventRequestValidator implements Validator {
             if (isTimeInPast(expireTime))
                 errors.rejectValue("inviteExpire", "inviteExpire.inPast", "InviteExpire is in past");
         }
+
+        if (eventModel.getIsPublic() == null)
+            errors.reject("isPublic", "IsPublic is null");
     }
 
     private boolean isTimeInvalid(Long longTime) {
